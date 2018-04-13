@@ -86,6 +86,10 @@ Actor.prototype.processTrade = function(trade) {
   this.method.processTrade(trade);
 }
 
+Actor.prototype.processCommand = function(command) {
+  this.method.processCommand(command);
+}
+
 // pass through shutdown handler
 Actor.prototype.finish = function(done) {
   this.method.finish(done);

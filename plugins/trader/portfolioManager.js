@@ -11,12 +11,14 @@
 
 var _ = require('lodash');
 var util = require('../../core/util');
+var config = util.getConfig();
 var dirs = util.dirs();
 var events = require('events');
 var log = require(dirs.core + 'log');
 var async = require('async');
 var checker = require(dirs.core + 'exchangeChecker.js');
 var moment = require('moment');
+var utc = moment.utc;
 
 var Manager = function(conf) {
   _.bindAll(this);
@@ -35,6 +37,9 @@ var Manager = function(conf) {
   this.portfolio = {};
   this.fee;
   this.action;
+
+  this.candlePrice = 0;
+  this.candlePriceTime = utc();
 
   this.marketConfig = _.find(this.exchangeMeta.markets, function(p) {
     return _.first(p.pair) === conf.currency.toUpperCase() && _.last(p.pair) === conf.asset.toUpperCase();
@@ -74,6 +79,12 @@ Manager.prototype.init = function(callback) {
     this.setPortfolio,
     this.setFee
   ], _.bind(prepare, this));
+
+}
+
+Manager.prototype.getPortfolio = function()
+{
+  return this.portfolio;
 }
 
 Manager.prototype.setPortfolio = function(callback) {
@@ -393,5 +404,54 @@ Manager.prototype.logPortfolio = function() {
     log.info('\t', fund.name + ':', parseFloat(fund.amount).toFixed(12));
   });
 };
+
+Manager.prototype.processCandle = function(candle) {
+  this.candlePrice = candle.close;
+  this.candlePriceTime = candle.start;
+}
+
+Manager.prototype.processCommand = function (cmd) {
+  
+  if (cmd.command == 'portfolio') {
+    cmd.handled = true;
+
+    this.setTicker(() => {
+      var message = "Portfolio:\n";
+      var value = 0.0;
+      var price = this.ticker.bid;
+      _.each(this.portfolio, function (fund) {
+        var isAsset = fund.name == config.watch.asset;
+        var amount = parseFloat(fund.amount);
+        message += fund.name + ': ' + amount.toFixed(isAsset ? 6 : 2) + "\n";
+        if (isAsset) {
+          value += amount * price;
+        } else {
+          value += amount;
+        }
+      }.bind(this));
+
+      message += "\nTotal value: " + value.toFixed(2);
+      log.remote(message);
+
+    });
+  }
+  else if (cmd.command == 'price') {
+    cmd.handled = true;
+
+    var logPrice = function() {
+      var message = ['Current price at ', config.watch.exchange, ' ',
+        config.watch.currency, '/', config.watch.asset, ' is ',
+        this.ticker.bid, ' ', config.watch.currency, ' (bid) ',
+        this.ticker.ask, ' ', config.watch.currency, ' (ask) ',
+        this.candlePrice, ' ', config.watch.currency, ' (candle close, ', this.candlePriceTime.fromNow(),
+        ')'
+      ].join('');
+
+      log.remote(message);
+    }.bind(this);
+
+    this.setTicker(logPrice);
+  }
+}
 
 module.exports = Manager;

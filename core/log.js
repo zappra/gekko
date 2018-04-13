@@ -23,6 +23,7 @@ var sendToParent = function() {
     error: send('error'),
     warn: send('warn'),
     info: send('info'),
+    status: send('status'),
     write: send('write')
   }
 }
@@ -35,18 +36,39 @@ var Log = function() {
     this.output = console;
   else if(this.env === 'child-process')
     this.output = sendToParent();
+
+  this.remoteLoggers = [];
 };
 
 Log.prototype = {
   _write: function(method, args, name) {
+
+    var config = util.getConfig();
+    var silent = config.silent;
+
+    if(silent)
+      return;
+      
     if(!name)
       name = method.toUpperCase();
 
     var message = moment().format('YYYY-MM-DD HH:mm:ss');
     message += ' (' + name + '):\t';
-    message += fmt.apply(null, args);
+    var rawMessage = fmt.apply(null, args);
+    message += rawMessage;
 
-    this.output[method](message);
+    if (method == 'remote')
+    {
+      // mirror remote output to info 
+      this.output['info'](message);
+      _.each(this.remoteLoggers, function(logger) {
+        logger.logRemote(rawMessage);
+      });
+    }
+    else
+    {
+      this.output[method](message);
+    }
   },
   error: function() {
     this._write('error', arguments);
@@ -57,10 +79,16 @@ Log.prototype = {
   info: function() {
     this._write('info', arguments);
   },
+  remote: function() {
+    this._write('remote', arguments);
+  },
   write: function() {
     var args = _.toArray(arguments);
     var message = fmt.apply(null, args);
     this.output.info(message);
+  },
+  addRemoteLogger: function(logger) {
+    this.remoteLoggers.push(logger);
   }
 }
 
@@ -77,6 +105,7 @@ if(silent) {
   Log.prototype.warn = _.noop;
   Log.prototype.error = _.noop;
   Log.prototype.write = _.noop;
+  Log.prototype.remote = _.noop;
 }
 
 module.exports = new Log;

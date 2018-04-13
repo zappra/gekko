@@ -83,6 +83,9 @@ var Base = function(settings) {
   if(!this.onTrade)
     this.onTrade = function() {};
 
+  if(!this.onCommand)
+    this.onCommand = function() {};
+
   // let's run the implemented starting point
   this.init();
 
@@ -260,6 +263,10 @@ Base.prototype.propogateTick = function(candle) {
 
 Base.prototype.processTrade = function(trade) {
   this.onTrade(trade);
+}
+
+Base.prototype.processCommand = function(command) {
+  this.onCommand(command);
 }
 
 Base.prototype.addTalibIndicator = function(name, type, parameters) {

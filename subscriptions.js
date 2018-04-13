@@ -29,6 +29,11 @@ var subscriptions = [
     event: 'portfolioUpdate',
     handler: 'processPortfolioUpdate'
   },
+  {
+    emitter: ['telegrambot'],
+    event: 'command',
+    handler: 'processCommand'
+  }
 ];
 
 module.exports = subscriptions;

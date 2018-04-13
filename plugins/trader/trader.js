@@ -32,7 +32,11 @@ var Trader = function(next) {
 // teach our trader events
 util.makeEventEmitter(Trader);
 
-Trader.prototype.processCandle = (candle, done) => done();
+Trader.prototype.processCandle = function(candle, done)
+{
+  this.manager.processCandle(candle);
+  done();
+}
 
 Trader.prototype.processAdvice = function(advice) {
   if(advice.recommendation == 'long') {
@@ -50,6 +54,10 @@ Trader.prototype.processAdvice = function(advice) {
     );
     this.manager.trade('SELL');
   }
+}
+
+Trader.prototype.processCommand = function(command) {
+  this.manager.processCommand(command);
 }
 
 module.exports = Trader;

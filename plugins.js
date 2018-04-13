@@ -58,6 +58,7 @@ var plugins = [
     slug: 'telegrambot',
     async: false,
     modes: ['realtime'],
+    emits: ['command'],
     dependencies: [{
       module: 'node-telegram-bot-api',
       version: '0.24.0'
