@@ -5,8 +5,20 @@
       th amount of trades
       td {{ report.trades }}
     tr
+      th profitable trades
+      td {{ report.profitableTrips }}%
+    tr
       th sharpe ratio
       td {{ round2(report.sharpe) }}
+    tr
+      th average/max profit
+      td {{ report.averageProfit }}/{{report.maxProfit }}%
+    tr
+      th average/max loss
+      td {{ -report.averageLoss }}/{{ -report.maxLoss }}%
+    tr
+      th max drawdown
+      td {{ report.maxDrawdown }}%
     tr
       th start balance
       td {{ round(report.startBalance) }} {{ report.currency }}
