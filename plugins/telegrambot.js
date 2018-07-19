@@ -20,6 +20,7 @@ var Actor = function () {
 util.makeEventEmitter(Actor);
 
 Actor.prototype.processAdvice = function (advice) {
+  this.advice = advice.recommendation;
   if (this.chatId) {
     var message;
     if (this.advice == 'long') {
