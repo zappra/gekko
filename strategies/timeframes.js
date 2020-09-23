@@ -78,6 +78,7 @@ strat.update = function(candle) {
 
   // write 1 minute candle to 15 minute batcher
   this.batcher15.write([candle]);
+  this.batcher15.flush();
 
 }
 
@@ -98,6 +99,7 @@ strat.update15 = function(candle) {
   
   // write 15 minute candle to 30 minute batcher
   this.batcher30.write([candle]);
+  this.batcher30.flush();
 }
 
 /////////////////////////////////////////////////////////////////////
